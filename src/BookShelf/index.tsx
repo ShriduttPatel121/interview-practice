@@ -1,49 +1,52 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 
+import { type PokemonItemType } from "./utils";
 
-type PokemonItemType = {
-    name: string;
-    url: string;
-};
-
-const tableColumns = ["Name", "url"];
-
-async function fetchPokemons(offset: number, limit: number) {
-    const res = await fetch(process.env.REACT_APP_API_BASE_URL)
-}
+import { fetchPokemons, tableColumns } from "./utils";
 
 export default function BookShelf() {
     const [pokemonList, setPokemonList] = useState<PokemonItemType[]>([]);
     const [totalPages, setTotalPages] = useState<number>(0);
     const [currentPage, setCurrentPage] = useState<number>(0);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [perPage, _] = useState<number>(10);
 
     useEffect(() => {
-
+        const initPokemons = async () => {
+            const { count, results } = await fetchPokemons((perPage * currentPage), perPage);
+            setTotalPages(Math.ceil(count / perPage));
+            setPokemonList(results)
+        }
+        initPokemons()
     }, [])
 
-    <table className="table-fixed">
-        <thead>
-            <th>
+    return <div className="flex justify-center">
+        <table className="table-fixed border-collapse w-full text-sm">
+            <thead>
+                <tr>
+                    {
+                        tableColumns.map((col, i) => {
+                            return <th className="text-left p-4 pt-0 pl-8" key={i} >{col}</th>
+                        })
+                    }
+                </tr>
+            </thead>
+            <tbody>
                 {
-                    tableColumns.map((col, i) => {
-                        return <th>{col}</th>
+                    pokemonList.map((pokemon, i) => {
+                        return <tr key={i}>
+                            <td className="p-4 pt-0 pl-8">
+                                {pokemon.name}
+                            </td>
+                            <td className="p-4 pt-0 pl-8">
+                                {pokemon.url}
+                            </td>
+                        </tr>
                     })
                 }
-            </th>
-        </thead>
-        <tbody>
-            {
-                pokemonList.map((pokemon) => {
-                    return <tr>
-                        <td>
-                            {pokemon.name}
-                        </td>
-                        <td>
-                            {pokemon.url}
-                        </td>
-                    </tr>
-                })
-            }
-        </tbody>
+            </tbody>
     </table>
+    <button>previous</button>
+    <button disabled={isLoading || currentPage === totalPages} >next</button>
+    </div>
 }
